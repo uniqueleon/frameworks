@@ -1,15 +1,22 @@
 package org.aztec.framework.web.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.aztec.framework.api.rest.constant.StatusCodes;
 import org.aztec.framework.api.rest.entity.RestResult;
 import org.aztec.framework.core.common.exceptions.BusinessException;
 import org.aztec.framework.web.protocol.ProtocolUtils;
+import org.aztec.framework.web.security.HttpTokenService;
+import org.aztec.framework.web.security.Token;
+import org.aztec.framework.web.security.impl.UserDataCredentials;
 
 public abstract class BaseController {
 
     private static final String DEFAULT_NOT_NULL_MSG = "参数不能为空！";
     private static final String OBJ_NOT_NULL_MSG = "对象不能为空！";
     private static final String ID_NOT_NULL_MSG = "id不能为空！";
+    
+    private HttpTokenService tokenService;
 
     public static void validateNotNull(Object obj, String msg){
         if (obj == null)
@@ -44,5 +51,18 @@ public abstract class BaseController {
         return ProtocolUtils.populateSuccessResponseTemplate(status, msg, data);
     }
 
+    protected UserDataCredentials getUserTokenData(HttpServletRequest request){
+
+        Token token = tokenService.getTokenFromRequest(request);
+        return tokenService.getCredentials(token).cast(UserDataCredentials.class);
+    }
+
+    protected String getAccount(HttpServletRequest request){
+        return getUserTokenData(request).getAccount();
+    }
+    
+    protected Long getUserID(HttpServletRequest request){
+        return getUserTokenData(request).getId();
+    }
     
 }
