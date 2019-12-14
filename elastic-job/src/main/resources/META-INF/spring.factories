@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.sjsc.framework.elastic_job.ElasticJobAutoConfiguration

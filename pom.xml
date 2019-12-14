@@ -25,7 +25,16 @@
     <properties>
         <java.version>1.8</java.version>
         <spring-cloud.version>Greenwich.SR3</spring-cloud.version>
+        <sharding-sphere.version>3.0.0.M2</sharding-sphere.version>
         
+        <elastic-job.version>2.1.6-SNAPSHOT</elastic-job.version>
+        <springframework.version>4.3.4.RELEASE</springframework.version>
+        <slf4j.version>1.7.7</slf4j.version>
+        <logback.version>1.1.2</logback.version>
+        <commons-dbcp.version>1.4</commons-dbcp.version>
+        <h2.version>1.4.184</h2.version>
+        <mysql.version>5.1.30</mysql.version>
+        <curator.version>2.10.0</curator.version>
         <spring-cloud.version>Greenwich.SR3</spring-cloud.version>
         <sharding-sphere.version>3.0.0.M2</sharding-sphere.version>
         <main-version>0.0.1-SNAPSHOT</main-version>
