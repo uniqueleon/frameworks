@@ -26,6 +26,8 @@ public class SessionEncryptConfig {
     
     private String renewInterval = "20000";
     
+    private String noCheckTokenUrls = "/user/query";
+    
     public static final long DEFAULT_TOKEN_TTL = 12 * 60 * 60 * 1000l;
     
     
@@ -118,6 +120,18 @@ public class SessionEncryptConfig {
     
     public boolean isTokenValidEnabled(){
         return Boolean.parseBoolean(getTokenValidEnabled());
+    }
+    public String getNoCheckTokenUrls() {
+        return noCheckTokenUrls;
+    }
+    
+    @DisconfFileItem(name="noCheckUrls",associateField="noCheckTokenUrls")
+    public void setNoCheckTokenUrls(String noCheckTokenUrls) {
+        this.noCheckTokenUrls = noCheckTokenUrls;
+    }
+    
+    public String[] getNocheckUrls(){
+        return noCheckTokenUrls.split(",");
     }
     
 }

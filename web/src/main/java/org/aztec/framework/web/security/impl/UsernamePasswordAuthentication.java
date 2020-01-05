@@ -10,6 +10,7 @@ public class UsernamePasswordAuthentication implements Authentication {
     private String password;
     private Long userId;
     private boolean authenticated;
+    private Credentials credentials;
 
     public UsernamePasswordAuthentication(String username, String password, Long userId,
             boolean authenticated) {
@@ -18,11 +19,12 @@ public class UsernamePasswordAuthentication implements Authentication {
         this.password = password;
         this.userId = userId;
         this.authenticated = authenticated;
+        this.credentials = new UserDataCredentials(username, userId);
     }
 
     @Override
     public Credentials getCredentials() {
-        return new UserDataCredentials(username, userId);
+        return credentials;
     }
 
     @Override
