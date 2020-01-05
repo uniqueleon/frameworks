@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.aztec.framework.core.DisconfAutoConfiguration
+org.aztec.framework.core.DisconfAutoConfiguration,\
+org.aztec.framework.core.HealthCheckAutoConfiguration
