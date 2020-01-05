@@ -19,6 +19,8 @@
     	<module>api</module>
     	<module>core</module>
     	<module>mybatis</module>
+    	<module>elastic-job</module>
+    	<module>redis</module>
     	<module>web</module>
     </modules>
 

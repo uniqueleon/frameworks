@@ -27,6 +27,8 @@ public class DisconfJobPropertiesConfig {
     private String jobShardParameters;
     
     private String index;
+    
+    private String configMode;
 
     @DisconfFileItem(name="enabled",associateField="enabled")
     public String getEnabled() {
@@ -92,6 +94,15 @@ public class DisconfJobPropertiesConfig {
 
     public void setIndex(String index) {
         this.index = index;
+    }
+
+    @DisconfFileItem(name="config.mode",associateField="configMode")
+    public String getConfigMode() {
+        return configMode;
+    }
+
+    public void setConfigMode(String configMode) {
+        this.configMode = configMode;
     }
     
     

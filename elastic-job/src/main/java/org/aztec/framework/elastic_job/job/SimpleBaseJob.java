@@ -38,7 +38,10 @@ public class SimpleBaseJob implements SimpleJob {
      */
     public <T> Boolean isPermitData4LocalNode(
             ShardingContext shardingContext) {
-        Integer serverIndex = JobExecuteContext.getValueWithDefault(ContextKeys.SERVER_INDEX,1);
+        Integer serverIndex = JobExecuteContext.getValue(ContextKeys.SERVER_INDEX);
+        if(serverIndex == null) {
+        	return true;
+        }
         //Integer serverIndex = Integer.parseInt(config.getIndex());
         long index = Long.valueOf(serverIndex)
                 % shardingContext.getShardingTotalCount();
