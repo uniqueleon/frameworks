@@ -47,4 +47,6 @@ public interface TokenService {
      * @throws BusinessException
      */
     public Token renew(Token token) throws BusinessException;
+    
+    public void remove(Token token) throws BusinessException;
 }

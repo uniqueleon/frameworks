@@ -4,10 +4,11 @@ import java.util.Map;
 
 import org.aztec.framework.core.SpringApplicationContext;
 import org.aztec.framework.core.common.exceptions.BusinessException;
+import org.aztec.framework.redis.RedisOperator;
 import org.aztec.framework.web.security.Credentials;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Maps;
-import com.sjsc.framework.redis.core.RedisManage;
 
 public class UserDataCredentials implements Credentials{
     
@@ -16,7 +17,8 @@ public class UserDataCredentials implements Credentials{
     private Long id;
     private static Map<String,Object> localCache = Maps.newConcurrentMap();
     protected static Map<String,String> userDetailServiceName = Maps.newConcurrentMap();
-    protected RedisManage redisManager = RedisManage.getInstance();
+    @Autowired
+    protected RedisOperator redisManager;
     
     public static void registUserDetailService(String dataName,String serviceName){
         userDetailServiceName.put(dataName, serviceName);

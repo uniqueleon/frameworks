@@ -31,6 +31,11 @@
             <version>${main-version}</version>
         </dependency>
         <dependency>
+            <groupId>org.aztec</groupId>
+            <artifactId>framework-redis</artifactId>
+            <version>${main-version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>

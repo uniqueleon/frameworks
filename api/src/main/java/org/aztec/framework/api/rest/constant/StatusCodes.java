@@ -24,5 +24,8 @@ public interface StatusCodes {
 
     String COMMON_SUCCESS = "SUCCESS";
 
+    String COMMON_FAIL = "FAIL";
+    
+    String TOKEN_MISSING = "TOKEN_MISSED";
 
 }

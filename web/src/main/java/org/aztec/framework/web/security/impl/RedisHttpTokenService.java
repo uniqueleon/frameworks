@@ -4,19 +4,23 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.aztec.framework.core.common.exceptions.BusinessException;
+import org.aztec.framework.redis.RedisOperator;
 import org.aztec.framework.web.security.HttpTokenService;
 import org.aztec.framework.web.security.Token;
 import org.aztec.framework.web.security.TokenMissingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
-import com.sjsc.framework.redis.core.RedisManage;
 
 @Component
 public class RedisHttpTokenService extends BaseTokenService implements HttpTokenService {
 
+	
+	@Autowired
+	RedisOperator redisManager;
     
     private static final Logger LOG = LoggerFactory.getLogger(RedisHttpTokenService.class);
 
@@ -27,7 +31,6 @@ public class RedisHttpTokenService extends BaseTokenService implements HttpToken
             LOG.error("TOKEN ID is EMPTY!");
             throw new TokenMissingException("TOKEN ID is EMPTY!");
         }
-        RedisManage redisManager = RedisManage.getInstance();
         String realToken = redisManager.get(tokenID);
         if(realToken != null){
             Token retToken = parse(realToken);
@@ -46,13 +49,13 @@ public class RedisHttpTokenService extends BaseTokenService implements HttpToken
 
     @Override
     public void persist(Token token) throws BusinessException {
-        RedisManage.getInstance().set(token.getID(), token.getAsString(), new Long(token.getTtl() / 1000).intValue());
+    	redisManager.set(token.getID(), token.getAsString(), new Long(token.getTtl() / 1000).intValue());
     }
 
     @Override
     public void remove(Token token) throws BusinessException {
         if(token != null){
-            RedisManage.getInstance().del(token.getID());
+        	redisManager.del(token.getID());
         }
     }
 

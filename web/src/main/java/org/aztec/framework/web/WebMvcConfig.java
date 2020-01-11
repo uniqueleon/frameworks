@@ -1,14 +1,13 @@
 package org.aztec.framework.web;
 
 import org.aztec.framework.disconf.items.SessionEncryptConfig;
+import org.aztec.framework.web.interceptor.EntrypointLogInterceptor;
+import org.aztec.framework.web.interceptor.TokenValidateInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import com.sjsc.framework.web.interceptor.EntrypointLogInterceptor;
-import com.sjsc.framework.web.interceptor.TokenValidateInterceptor;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {

@@ -2,7 +2,7 @@ package org.aztec.framework.web.protocol;
 
 import org.aztec.framework.api.rest.constant.StatusCodes;
 import org.aztec.framework.api.rest.entity.RestResult;
-import org.aztec.framework.core.common.utils.JsonUtils;
+import org.aztec.framework.core.utils.JsonUtils;
 
 public final class ProtocolUtils {
 

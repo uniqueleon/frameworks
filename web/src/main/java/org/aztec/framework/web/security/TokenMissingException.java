@@ -1,7 +1,7 @@
 package org.aztec.framework.web.security;
 
-import com.sjsc.framework.api.restful.constant.StatusCodes;
-import com.sjsc.framework.core.exceptions.BusinessException;
+import org.aztec.framework.api.rest.constant.StatusCodes;
+import org.aztec.framework.core.common.exceptions.BusinessException;
 
 public class TokenMissingException extends BusinessException {
 
