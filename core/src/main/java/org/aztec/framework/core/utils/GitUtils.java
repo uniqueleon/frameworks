@@ -23,11 +23,10 @@ import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 import org.eclipse.jgit.errors.NoWorkTreeException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-
-import com.google.common.collect.Lists;
 
 public class GitUtils {
 
@@ -63,7 +62,7 @@ public class GitUtils {
 		}
 	}
 
-	public static void pull(Git git, String username, String password, String branch, Writer console)
+	public static PullResult pull(Git git, String username, String password, String branch, Writer console)
 			throws WrongRepositoryStateException, InvalidConfigurationException, InvalidRemoteException,
 			CanceledException, RefNotFoundException, RefNotAdvertisedException, NoHeadException, TransportException,
 			GitAPIException {
@@ -73,8 +72,13 @@ public class GitUtils {
 				// .setRemote("origin")
 				// .setRebase(false)
 				.call();
-
-		System.out.println(pr);
+		return pr;
+	}
+	
+	public static String getlastCommitHashcode(Git git, String username, String password, String branch, Writer console) throws WrongRepositoryStateException, InvalidConfigurationException, InvalidRemoteException, CanceledException, RefNotFoundException, RefNotAdvertisedException, NoHeadException, TransportException, GitAPIException {
+		PullResult pr = pull(git, username, password, branch, console);
+		ObjectId head = pr.getMergeResult().getNewHead();
+		return head.getName();
 	}
 
 	public static void commit(Git git,List<String> filePaths,String comment)
@@ -105,13 +109,17 @@ public class GitUtils {
 			// Git git = clone("https://github.com/uniqueleon/snakeeater.git", "uniqueleon",
 			// "g13422345952h", "D://data/git/snakeeater");
 			
-			String username = "uniqueleon"; String password = "g13422345952h";
-			PrintWriter pr = new PrintWriter(System.out); Git git =
-			getGitInstance("D://data/git/snakeeater/.git"); pull(git, username,
-			password,"master",pr);
-			commit(git, Lists.newArrayList("readme1.txt"),"commit");
-			push(git, username, password,pr);
-
+			String username = "uniqueleon";
+			String password = "g13422345952h",branch = "master";
+			PrintWriter console = new PrintWriter(System.out); Git git =
+			getGitInstance("D://data/git/snakeeater/.git");
+			/*pull(git, username,
+			password,"master",pr);*/
+			String hashCode = getlastCommitHashcode(git, username, password, branch, console);
+			System.out.println(hashCode);
+			//commit(git, Lists.newArrayList("readme1.txt"),"commit");
+			//push(git, username, password,pr);
+			//pull(git, username, password, branch, pr);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
