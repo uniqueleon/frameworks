@@ -6,7 +6,7 @@ import org.springframework.context.annotation.ImportResource;
 
 @Configuration
 @ImportResource({"classpath:log4j2.xml"})
-@ConditionalOnProperty(prefix="sjsc.framework",name="log4j2.enabled",matchIfMissing=false,havingValue="true")
+@ConditionalOnProperty(prefix="org.aztec.framework",name="log4j2.enabled",matchIfMissing=false,havingValue="true")
 public class Log4jAutoConfiguration {
 
 }

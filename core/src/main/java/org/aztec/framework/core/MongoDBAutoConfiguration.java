@@ -13,7 +13,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 
 @Configuration
-@ConditionalOnProperty(prefix="sjsc.framework",name="mongodb.disconf_enabled",havingValue="true")
+@ConditionalOnProperty(prefix="org.aztec.framework",name="mongodb.disconf_enabled",havingValue="true")
 @ConditionalOnBean({MongoDBConf.class})
 public class MongoDBAutoConfiguration {
 

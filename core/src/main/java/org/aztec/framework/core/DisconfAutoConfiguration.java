@@ -6,7 +6,7 @@ import org.springframework.context.annotation.ImportResource;
 
 @Configuration
 @ImportResource({"classpath:default-disconf.xml"})
-@ConditionalOnProperty(prefix="aztec.framework",name="disconf.enabled",havingValue="true")
+@ConditionalOnProperty(prefix="org.aztec.framework",name="disconf.enabled",havingValue="true")
 public class DisconfAutoConfiguration {
     
     static {

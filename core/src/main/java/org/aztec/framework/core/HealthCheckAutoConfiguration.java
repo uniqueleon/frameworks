@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan(basePackages={
-        "com.sjsc.framework.core.health*"})
+        "org.aztec.framework.core.health*"})
 public class HealthCheckAutoConfiguration {
     
     private static final Logger LOG = LoggerFactory.getLogger(HealthCheckAutoConfiguration.class);
