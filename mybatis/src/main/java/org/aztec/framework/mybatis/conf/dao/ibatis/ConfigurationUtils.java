@@ -2,8 +2,6 @@ package org.aztec.framework.mybatis.conf.dao.ibatis;
 
 import java.util.Map;
 
-import org.aztec.framework.mybatis.conf.dao.ibatis.DisconfDataSourceConfiguration.TableRuleInfo;
-
 import com.google.common.collect.Maps;
 
 public class ConfigurationUtils {

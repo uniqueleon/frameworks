@@ -14,6 +14,7 @@ import org.aztec.framework.disconf.items.ActualNodesConf;
 import org.aztec.framework.disconf.items.Constants;
 import org.aztec.framework.disconf.items.DataSourceConfig;
 import org.aztec.framework.disconf.items.DatabaseRules;
+import org.aztec.framework.disconf.items.GlobalConf;
 import org.aztec.framework.disconf.items.MasterSlaveConfig;
 import org.aztec.framework.disconf.items.MasterSlaveConfig.MasterSlaveInfo;
 import org.aztec.framework.disconf.items.ShardingStragegy;
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import com.baidu.disconf.client.usertools.IDisconfDataGetter;
 import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;
 
@@ -69,12 +71,17 @@ public class DisconfDataSourceConfiguration {
     private MasterSlaveConfig msConf;
     @Autowired
     private Map<String, ComplexKeysShardingAlgorithm> algorithms;
+    @Autowired
+    IDisconfDataGetter dynamicGetter;
+    @Autowired
+    GlobalConf globalConf;
 
     private static final Logger LOG = LoggerFactory.getLogger(DisconfDataSourceConfiguration.class);
 
     private Map<String, DataSource> createDataSource() throws SQLException {
         Map<String, DataSource> dataSourceMap = new HashMap<>();
-        List<DataSourceInfo> dsInfos = getDataSourceInfo();
+        //List<DataSourceInfo> dsInfos = getDataSourceInfo();
+        List<DataSourceInfo> dsInfos = getDynamicDataSourceInfo();
         for (int i = 0; i < dsInfos.size(); i++) {
 
             BasicDataSource dataSource1 = new BasicDataSource();
@@ -108,7 +115,8 @@ public class DisconfDataSourceConfiguration {
         //shardingRuleConfig.setDefaultDatabaseShardingStrategyConfig(new NoneShardingStrategyConfiguration());
         shardingRuleConfig.setDefaultDataSourceName("ds0");
         //shardingRuleConfig.setDefaultTableShardingStrategyConfig(new NoneShardingStrategyConfiguration());
-        List<TableRuleInfo> ruleInfo = getRules();
+        //List<TableRuleInfo> ruleInfo = getRules();
+        List<TableRuleInfo> ruleInfo = getDynamicTableRules();
         for (int i = 0; i < ruleInfo.size(); i++) {
             TableRuleInfo rule = ruleInfo.get(i);
             TableRuleConfiguration tableRuleConfig = new TableRuleConfiguration();
@@ -182,85 +190,6 @@ public class DisconfDataSourceConfiguration {
         return ds;
     }
 
-    public static class TableRuleInfo {
-        private String name;
-        private String dbRule;
-        private String tableRule;
-        private String stragegy;
-        private String primaryKey;
-        private String transformers;
-        private String actualDataNodes;
-
-        public String getActualDataNodes() {
-            return actualDataNodes;
-        }
-
-        public void setActualDataNodes(String actualDataNodes) {
-            this.actualDataNodes = actualDataNodes;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getDbRule() {
-            return dbRule;
-        }
-
-        public void setDbRule(String dbRule) {
-            this.dbRule = dbRule;
-        }
-
-        public String getTableRule() {
-            return tableRule;
-        }
-
-        public void setTableRule(String tableRule) {
-            this.tableRule = tableRule;
-        }
-
-        public String getPrimaryKey() {
-            return primaryKey;
-        }
-
-        public void setPrimaryKey(String primaryKey) {
-            this.primaryKey = primaryKey;
-        }
-
-        public String getStragegy() {
-            return stragegy;
-        }
-
-        public void setStragegy(String stragegy) {
-            this.stragegy = stragegy;
-        }
-
-        public String getTransformers() {
-            return transformers;
-        }
-
-        public void setTransformers(String transformers) {
-            this.transformers = transformers;
-        }
-
-        public TableRuleInfo(String name, String dbRule, String tableRule, String primaryKey, String actualDataNodes,
-                String stragegy,String transformers) {
-            super();
-            this.name = name;
-            this.dbRule = dbRule;
-            this.tableRule = tableRule;
-            this.primaryKey = primaryKey.replaceAll("#", ",");
-            this.transformers = transformers.replaceAll("#", ",");
-            this.actualDataNodes = actualDataNodes;
-            this.stragegy = stragegy;
-            
-        }
-
-    }
 
     public List<DataSourceInfo> getDataSourceInfo() {
         String[] names = dsConfig.getDataSources().split(Constants.DEFAULT_SEPERATOR);
@@ -276,63 +205,37 @@ public class DisconfDataSourceConfiguration {
         return ds;
     }
 
-    public static class DataSourceInfo {
+    public List<DataSourceInfo> getDynamicDataSourceInfo(){
 
-        private String name;
-        private String url;
-        private String driver;
-        private String user;
-        private String password;
+        String[] names = globalConf.getDataSources().split(Constants.DEFAULT_SEPERATOR);
+        List<DataSourceInfo> ds = Lists.newArrayList();
+        for(int i = 0;i < names.length;i++){
+            String dsName = names[i];
 
-        public String getName() {
-            return name;
+            Map<String,Object> dynamicConf = dynamicGetter.getByFile("DS_"+ dsName + "_conf.properties");
+            ds.add(new DataSourceInfo(dsName, (String)dynamicConf.get("url"),  (String)dynamicConf.get("driver"), 
+                    (String)dynamicConf.get("user"),  (String)dynamicConf.get("password")));
         }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        public String getDriver() {
-            return driver;
-        }
-
-        public void setDriver(String driver) {
-            this.driver = driver;
-        }
-
-        public String getUser() {
-            return user;
-        }
-
-        public void setUser(String user) {
-            this.user = user;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
-
-        public DataSourceInfo(String name, String url, String driver, String user, String password) {
-            super();
-            this.name = name;
-            this.url = url;
-            this.driver = driver;
-            this.user = user;
-            this.password = password;
-        }
-
+        return ds;
     }
+    
+    public List<TableRuleInfo> getDynamicTableRules(){
+        String[] names = globalConf.getTables().split(Constants.DEFAULT_SEPERATOR);
+        List<TableRuleInfo> rules = Lists.newArrayList();
+        if(names == null || names.length == 0 || names[0].isEmpty()){
+            return rules;
+        }
+        for(int i = 0;i < names.length;i++){
+            String dsName = names[i];
 
+            Map<String,Object> dynamicConf = dynamicGetter.getByFile("TABLE_"+ dsName + "_conf.properties");
+            rules.add(new TableRuleInfo(names[i], (String)dynamicConf.get("dbRule"), 
+                    (String)dynamicConf.get("tableRule"), 
+                    (String)dynamicConf.get("shardColumns"), 
+                    (String)dynamicConf.get("dataNodes"), 
+                    (String)dynamicConf.get("stragegy")
+                    ,(String)dynamicConf.get("transformers")));
+        }
+        return rules;
+    }
 }

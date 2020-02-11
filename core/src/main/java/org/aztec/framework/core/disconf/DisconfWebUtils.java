@@ -21,6 +21,11 @@ import org.aztec.framework.core.utils.HttpRequestUtils;
 
 import com.google.common.collect.Maps;
 
+/**
+ * 与Disconf web后台通讯的工具类 
+ * @author liming
+ *
+ */
 public class DisconfWebUtils {
     
     private static final String DOWNLOAD_URL_PATTERN = "/api/config/file?app=%s&env=%s&version=%s&key=%s";
@@ -29,6 +34,13 @@ public class DisconfWebUtils {
     
     private static final Map<String,NodeCache> caches = Maps.newConcurrentMap();
 
+    /**
+     * 从disconf web后端读取配置文件
+     * @param fileName
+     * @param config
+     * @return
+     * @throws Exception
+     */
     public static File download(String fileName,DisconfConnectionConfig config) throws Exception{
         
         String theUrl = config.getWebUrl() + DOWNLOAD_URL_PATTERN;
@@ -43,11 +55,23 @@ public class DisconfWebUtils {
         return targetFile;
     }
     
+    /**
+     * 判断某个文件监视器是否存在
+     * @param fileName
+     * @param config
+     * @return
+     */
     public static boolean isWatcherExists(String fileName,DisconfConnectionConfig config){
         String path = getDisconfZkMonitorPath(config, fileName);
         return caches.containsKey(path);
     }
     
+    /**
+     * 为某个配置文件注册一个监视器
+     * @param fileName
+     * @param config
+     * @throws Exception
+     */
     public static void registWatcher(String fileName,DisconfConnectionConfig config) throws Exception{
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
         CuratorFramework client = CuratorFrameworkFactory.newClient(config.getZkConnectUrl(), retryPolicy);
@@ -64,11 +88,21 @@ public class DisconfWebUtils {
         caches.put(path,nodeCache);
     }
     
+    /**
+     * 获取配置文件监视器在 zookeeper 中的路径
+     * @param config
+     * @param fileName
+     * @return
+     */
     public static String getDisconfZkMonitorPath(DisconfConnectionConfig config,String fileName){
         return String.format(ZK_MONITOR_PATH_TEMPLATE, new Object[]{config.getAppName(),config.getVersion(),config.getEnv(),fileName});
     }
     
-    
+    /**
+     * 配置文件监视器
+     * @author liming
+     *
+     */
     public static class ConfigFileMonitor implements NodeCacheListener{
         
         private static final String THREAD_NAME_PREFIX = "DISCONF_FILE_";
@@ -114,6 +148,9 @@ public class DisconfWebUtils {
     
     public static String getMD5Substract(File targetFile) throws FileNotFoundException, IOException{
         File md5File = new File(getMD5FileName(targetFile));
+        if(!md5File.exists()){
+            return null;
+        }
         FileInputStream fis = new FileInputStream(md5File);
         String md5 = IOUtils.toString(fis);
         fis.close();

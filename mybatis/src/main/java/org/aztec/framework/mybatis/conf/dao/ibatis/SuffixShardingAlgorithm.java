@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.aztec.framework.mybatis.conf.dao.ibatis.DisconfDataSourceConfiguration.TableRuleInfo;
 import org.aztec.framework.mybatis.conf.dao.ibatis.ShardingThreadLocalContext.ShardingColumnMatchType;
 import org.springframework.beans.factory.annotation.Autowired;
 

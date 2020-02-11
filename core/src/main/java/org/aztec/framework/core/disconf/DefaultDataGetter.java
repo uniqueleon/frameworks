@@ -15,6 +15,11 @@ import org.springframework.stereotype.Component;
 import com.baidu.disconf.client.usertools.IDisconfDataGetter;
 import com.google.common.collect.Maps;
 
+/**
+ * 
+ * @author liming
+ *
+ */
 @Component
 public class DefaultDataGetter implements IDisconfDataGetter {
     
@@ -36,7 +41,7 @@ public class DefaultDataGetter implements IDisconfDataGetter {
         try {
             File configFile = getFile(fileName, config);
             String md5 = DisconfWebUtils.getMD5Substract(configFile);
-            if(mapCache.containsKey(md5)){
+            if(md5 != null && mapCache.containsKey(md5)){
                 return mapCache.get(md5);
             }
             else{
