@@ -37,7 +37,7 @@
         <mysql.version>5.1.30</mysql.version>
         <curator.version>2.10.0</curator.version>
         <spring-cloud.version>Greenwich.SR3</spring-cloud.version>
-        <sharding-sphere.version>3.0.0.M2</sharding-sphere.version>
+        <sharding-sphere.version>3.0.0.M3</sharding-sphere.version>
         <main-version>0.0.1-SNAPSHOT</main-version>
     </properties>
 
