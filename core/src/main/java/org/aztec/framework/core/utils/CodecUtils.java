@@ -2,9 +2,11 @@ package org.aztec.framework.core.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -296,4 +298,25 @@ public class CodecUtils {
         return mac.doFinal(text);
     }
 
+    public static byte[] sha256(String rawText) throws UnsupportedEncodingException, NoSuchAlgorithmException{
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] rawBytes = rawText.getBytes("UTF-8");
+        digest.update(rawBytes);
+        return rawBytes;
+    }
+    
+    public static BigDecimal sha256ToBigDecimal(String rawText) throws UnsupportedEncodingException, NoSuchAlgorithmException{
+        
+        
+        BigDecimal bd = new BigDecimal(0);
+        byte[] digestByte = sha256(rawText);
+        int offset = 1;
+        for(int i = 0;i < digestByte.length;i++){
+            BigDecimal base = new BigDecimal(256);
+            base = base.pow(i);
+            base = base.multiply(new BigDecimal((int)digestByte[i]));
+            bd = bd.add(base);
+        }
+        return bd;
+    }
 }
