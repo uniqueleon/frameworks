@@ -88,39 +88,38 @@ public class BasicMessageProvider implements WSMessageService {
         List<WSMessageConsumer> consumers = consumerMapper.query(consumerQO);
         List<WSMessageDTO> messageList = Lists.newArrayList();
         List<Long> readMsgIds = Lists.newArrayList();
-        if (consumers.size() > 0) {
+        for (WSMessageConsumer consumer : consumers) {
+            if (consumer.getStatus().equals(ReadStatus.READ.getCode())) {
+                readMsgIds.add(consumer.getMsgId());
+            }
+        }
+        // 读取已读消息
+        if (consumers.size() > 0 && !messageQO.getUnreadOnly()) {
             Map<Long, WSMessageConsumerDTO> groups = groupByMessageId(consumers);
             WSMessageQO qo = new WSMessageQO();
-            qo.setIds(Lists.newArrayList(groups.keySet()));
+            qo.setIds(readMsgIds);
             List<WSMessage> messages = messageMapper.query(qo);
-            for(WSMessageConsumer c :consumers){
-                if(c.getStatus() == ReadStatus.READ.getCode() ){
-                    readMsgIds.add(c.getMsgId());
-                }
-            }
             messages.forEach(message -> {
                 WSMessageDTO dto = new WSMessageDTO();
                 BeanUtils.copyProperties(message, dto);
                 dto.setId(message.getId());
                 WSMessageConsumerDTO c = groups.get(message.getId());
                 dto.setReadStatus(c.getStatus());
-                if (c.getStatus() != ReadStatus.READ.getCode() || !messageQO.getUnreadOnly()) {
-                    messageList.add(dto);
-                }
+                messageList.add(dto);
             });
         }
-        List<WSMessage> allSecretIds = messageMapper.getSecretMessages(readMsgIds);
-        List<WSMessage> secretMessages = getSecretMsgs(allSecretIds, messageQO.getConsumerId(),
-                messageQO.getUnreadOnly(), consumers);
-        secretMessages.forEach(msg -> {
+        //获取私信
+        List<WSMessage> allSecretMsgs = messageMapper.getSecretMessages(readMsgIds.size() >0? readMsgIds : null);
+        allSecretMsgs.forEach(msg -> {
             WSMessageDTO dto = new WSMessageDTO();
             dto.setReadStatus(ReadStatus.UNREAD.getCode());
             BeanUtils.copyProperties(msg, dto);
             dto.setId(msg.getId());
             messageList.add(dto);
         });
-        
-        List<WSMessage> messages = messageMapper.getUnreadMessage(readMsgIds.size() > 0 ? readMsgIds : null);
+
+        //获取未读主题 消息
+        List<WSMessage> messages = messageMapper.getUnreadTopicMessage(readMsgIds.size() > 0 ? readMsgIds : null);
         messages.forEach(message -> {
             WSMessageDTO dto = new WSMessageDTO();
             dto.setReadStatus(ReadStatus.UNREAD.getCode());
@@ -137,7 +136,7 @@ public class BasicMessageProvider implements WSMessageService {
         // TODO Auto-generated method stub
         WSMessage message = new WSMessage();
         BeanUtils.copyProperties(request, message);
-        if(request.getSourceObj() != null){
+        if (request.getSourceObj() != null) {
             message.setSourceInfo(JsonUtils.obj2String(request.getSourceObj()));
         }
         message.setStatus(1);
@@ -191,15 +190,16 @@ public class BasicMessageProvider implements WSMessageService {
         missIds.addAll(msgIds);
         int count = 0;
         if (consumers != null) {
-            for(WSMessageConsumer consumer : consumers){
+            for (WSMessageConsumer consumer : consumers) {
                 consumer.setStatus(ReadStatus.READ.getCode());
                 consumer.setUpdateTime(new Date());
                 count += consumerMapper.updateByPrimaryKey(consumer);
                 missIds.remove(consumer.getMsgId());
-            };
+            }
+            ;
         }
-        for(Long missId : missIds){
-            WSMessageConsumer newData =new WSMessageConsumer();
+        for (Long missId : missIds) {
+            WSMessageConsumer newData = new WSMessageConsumer();
             newData.setMsgId(missId);
             newData.setReceiverId(consumerId);
             newData.setCreateTime(new Date());
@@ -219,8 +219,8 @@ public class BasicMessageProvider implements WSMessageService {
             qo.setReceiverId(receiverId);
             consumerList.forEach(consumer -> {
                 secretMsgs.forEach(msg -> {
-                    if(msg.getId().equals(consumer.getMsgId())
-                            && consumer.getStatus().equals(ReadStatus.UNREAD.getCode())){
+                    if (msg.getId().equals(consumer.getMsgId())
+                            && consumer.getStatus().equals(ReadStatus.UNREAD.getCode())) {
                         unreadSecretIds.add(msg);
                     }
                 });
@@ -233,7 +233,9 @@ public class BasicMessageProvider implements WSMessageService {
     @Override
     public WSMsgStatisticInfo getStatisticInfo(WSMessageRequest messageQO) {
 
-        messageQO.setUnreadOnly(false);
+        if(messageQO.getUnreadOnly() == null){
+            messageQO.setUnreadOnly(true);
+        }
         List<WSMessageDTO> msg = findMessage(messageQO);
         List<WSMessageDTO> unreadMsg = Lists.newArrayList();
         Long titleCount = messageMapper.countTitleMessage();

@@ -21,9 +21,9 @@ public interface BasicWSMessageMapper<T extends WSMessage> extends MyMapper<T>{
      * @param userID
      * @return
      */
-    public List<WSMessage> getSecretMessages(@Param("excludeIds")List<Long> excludeIds);
+    public List<WSMessage> getSecretMessages(@Param("readMsgIds")List<Long> excludeIds);
     
     public List<T> query(@Param("param")WSMessageQO query);
     public int updateStatus(@Param("param")WSMessageQO param);
-    public List<T> getUnreadMessage(@Param("readMsgIds")List<Long> readMsgIds);
+    public List<T> getUnreadTopicMessage(@Param("readMsgIds")List<Long> readMsgIds);
 }
