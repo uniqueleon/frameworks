@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjsc.bms.index.dao.mapper.SaleOrderPackageIndexMapper">
+	<resultMap type="com.sjsc.bms.index.model.SaleOrderPackageIndex" id="saleOrderPackageMap">
+		<id column="id" property="id"/>
+		<result column="index_data" property="indexData"/>
+        <result column="remainder" property="remainder"/>
+        <result column="data_size" property="dataSize"/>
+        <result column="max_data_size" property="maxDataSize"/>
+		<result column="create_time" property="createTime"/>
+		<result column="update_time" property="updateTime"/>
+	</resultMap>
+
+	<select id="findOneByRemainder" resultMap="saleOrderPackageMap" parameterType="java.lang.Long">
+		select * from sale_order_package_index where remainder = #{remainder} limit 1
+	</select>
+	
+	<select id="findByRemainder" resultMap="saleOrderPackageMap" parameterType="com.sjsc.framework.mybatis.index.IndexQuery" >
+        select * from sale_order_package_index where remainder in 
+        <foreach item="remainder" index="index" collection="query.remainders"
+                open="(" separator="," close=")">
+                #{remainder}
+            </foreach>    
+        <if test="query.offset != null and query.limit != null">
+        limit #{query.offset},#{query.limit}
+        </if>
+    </select>
+    
+    <update id="updateIndex" parameterType="com.sjsc.bms.index.model.SaleOrderPackageIndex" >
+    <![CDATA[
+    UPDATE sale_order_package_index SET index_data = #{entity.indexData},data_size = data_size + #{entity.newSize} WHERE id = #{entity.id} AND data_size = #{entity.dataSize} AND max_data_size > #{entity.dataSize}
+    ]]>
+    </update>
+    
+	
+    <select id="countIndex" resultType="java.lang.Long" parameterType="java.util.List" >
+        select count(*) from sale_order_package_index where remainder in  
+        <foreach item="remainder" index="index" collection="remainders"
+                open="(" separator="," close=")">
+                #{remainder}
+            </foreach>
+    </select>
+    
+    <select id="sumDataSize" resultType="java.lang.Long" parameterType="java.util.List" >
+        select sum(data_size) from sale_order_package_index where remainder in  
+        <foreach item="remainder" index="index" collection="remainders"
+                open="(" separator="," close=")">
+                #{remainder}
+            </foreach>
+    </select>
+</mapper>
