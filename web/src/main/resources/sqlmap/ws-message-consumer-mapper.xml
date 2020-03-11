@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjsc.bms_demo.dao.WSConsumerMapper">
+	<resultMap type="com.sjsc.framework.web.socket.entity.WSMessageConsumer" id="consumerMapper">
+		<id column="id" property="id"/>
+        <id column="msg_id" property="msgId"/>
+        <id column="receiver_id" property="receiverId"/>
+		<result column="receiver_info" property="receiverInfo"/>
+		<result column="status" property="status"/>
+		<result column="create_time" property="createTime"/>
+		<result column="update_time" property="updateTime"/>
+	</resultMap>
+    
+    
+    <sql id="queryStatement">
+     <if test="param.id != null">
+        AND id = #{param.id}
+        </if>
+        <if test="param.msgIds != null">
+        AND msg_id IN <foreach item="msgid" index="index" collection="param.msgIds"
+      open="(" separator="," close=")">#{msgid}</foreach>
+        </if>
+        
+        <if test="param.ids != null">
+        AND id IN <foreach item="id" index="index" collection="param.ids"
+      open="(" separator="," close=")">#{id}</foreach></if>
+      
+        <if test="param.receiverId != null">
+        AND receiver_id = #{param.receiverId} 
+        </if>
+        
+        <if test="param.status != null">
+        AND status = #{param.status}
+        </if>
+    </sql>
+    
+    <select id="query" resultMap="consumerMapper" parameterType="com.sjsc.framework.web.socket.entity.WSConsumerQO">
+       select * from ws_msg_consumer where 1=1 <include refid="queryStatement"></include>
+    </select>
+
+</mapper>

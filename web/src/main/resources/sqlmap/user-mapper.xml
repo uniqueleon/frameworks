@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjsc.bms_demo.dao.UserMapper">
+	<resultMap type="com.sjsc.bms_demo.entity.User" id="usermap">
+		<id column="id" property="id"/>
+        <id column="project_id" property="projectId"/>
+        <id column="warehouse_id" property="warehouseId"/>
+		<result column="account" property="account"/>
+		<result column="password" property="password"/>
+		<result column="real_name" property="realName"/>
+		<result column="type" property="type"/>
+		<result column="status" property="status"/>
+		<result column="email" property="email"/>
+		<result column="mobile_no" property="mobileNo"/>
+		<result column="update_id" property="updateId"/>
+		<result column="create_id" property="createId"/>
+		<result column="create_time" property="createTime"/>
+		<result column="update_time" property="updateTime"/>
+	</resultMap>
+
+	<select id="findAll" resultMap="usermap">
+		select * from user
+	</select>
+	
+	<select id="findByAccount" resultMap="usermap" >
+        select * from user where 1=1
+        <if test="account != null and account != '' ">
+             AND account = #{account}
+        </if>
+        <if test="id != null ">
+             AND id = #{id}
+        </if>      
+    </select>
+	
+	<sql id="queryStatement">
+     <if test="user.id != null">
+        AND id = #{user.id}
+        </if>
+        <if test="user.type != null">
+        AND type = #{user.type}
+        </if>
+        
+        <if test="user.ids != null">
+        AND id IN <foreach item="id" index="index" collection="user.ids"
+      open="(" separator="," close=")">#{id}</foreach></if>
+	<if test="user.account != null">
+		AND account = #{user.account}
+		</if>
+		<if test="user.realName != null">
+		AND real_name like '%${user.realName}%'
+		</if>
+        <if test="user.status == null">
+        AND status != -1
+        </if>
+		<if test="user.status != null">
+		AND status = #{user.status}
+		</if>
+        
+        <if test="user.projectId != null">
+        AND project_id = #{user.projectId}
+        </if>
+        <if test="user.warehouseId != null">
+        AND warehouse_id = #{user.warehouseId}
+        </if>
+        <if test="user.createTime != null">
+        AND create_time = #{user.createTime}
+        </if>
+	</sql>
+	
+	<select id="countByCondition" resultType="java.lang.Long" parameterType="com.sjsc.bms_demo.entity.UserQO">
+	   select count(*) from user where 1=1 <include refid="queryStatement"></include>
+	</select> 
+		
+	<select id="findByCondition" resultMap="usermap" parameterType="com.sjsc.bms_demo.entity.UserQO">
+		select * from user where 1=1 
+		<include refid="queryStatement"></include>
+        <if test="user.begin != null and user.pageSize != null">
+        limit #{user.begin},#{user.pageSize}
+        </if>
+	</select>
+    
+    <select id="getUserList" resultMap="usermap" >
+        SELECT *
+        FROM user 
+        WHERE   1=1
+            <if test="idList != null">
+            AND id in
+            <foreach item="id" index="index" collection="idList" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            </if>
+               
+            <if test="type != null">
+               AND type = #{type}
+            </if>
+            <if test="status != null">
+               AND status = #{status}
+            </if>
+        
+    </select>
+    
+    <update id="updateUser" parameterType="com.sjsc.bms_demo.entity.User">
+    UPDATE user set real_name=#{user.realName} where id=${user.id} and warehouse_id = #{user.warehouseId}
+    and project_id = #{user.projectId} and create_time = #{user.createTime}
+    </update>
+</mapper>

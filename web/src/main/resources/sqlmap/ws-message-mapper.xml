@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjsc.bms_demo.dao.WSMessageMapper">
+	<resultMap type="com.sjsc.framework.web.socket.entity.WSMessage" id="wsmsgmap">
+		<id column="id" property="id"/>
+        <id column="msg_type" property="msgType"/>
+        <id column="source_id" property="sourceId"/>
+		<result column="source_info" property="sourceInfo"/>
+		<result column="content" property="content"/>
+		<result column="topic" property="topic"/>
+		<result column="title" property="title"/>
+		<result column="status" property="status"/>
+		<result column="create_time" property="createTime"/>
+		<result column="update_time" property="updateTime"/>
+	</resultMap>
+    
+    
+    <sql id="queryStatement">
+     <if test="param.id != null">
+        AND id = #{param.id}
+        </if>
+        <if test="param.msgType != null">
+        AND msg_type = #{param.msg_type}
+        </if>
+        
+        <if test="param.ids != null">
+        AND id IN <foreach item="id" index="index" collection="param.ids"
+      open="(" separator="," close=")">#{id}</foreach></if>
+      
+        <if test="param.sourceId != null">
+        AND source_id = #{param.sourceId} 
+        </if>
+        
+        <if test="param.status != null">
+        AND status = #{param.status}
+        </if>
+    </sql>
+    
+    <select id="query" resultMap="wsmsgmap" parameterType="com.sjsc.framework.web.socket.entity.WSMessageQO">
+       select * from ws_message where 1=1 <include refid="queryStatement"></include>
+    </select>
+    
+    <select id="countTitleMessage" resultType="java.lang.Long" >
+       select count(*) from ws_message where msg_type = 1
+    </select>
+
+    <select id="getSecretMessages" resultMap="wsmsgmap" parameterType="java.util.List">
+       select * from ws_message where (msg_type = 2 or msg_type = 3) <if test="readMsgIds != null">AND id NOT IN <foreach item="id" index="index" collection="readMsgIds"
+      open="(" separator="," close=")">#{id}</foreach></if>
+    </select>
+    
+    <update id="updateStatus" parameterType="com.sjsc.framework.web.socket.entity.WSMessageQO">
+    UPDATE ws_message set status = #{param.status} where id = #{param.id} and status = #{param.oldStatus}
+    </update>
+    
+    <select id="getUnreadTopicMessage" resultMap="wsmsgmap" parameterType="java.util.List">
+       select * from ws_message where msg_type=1 <if test="readMsgIds != null">AND id NOT IN <foreach item="id" index="index" collection="readMsgIds"
+      open="(" separator="," close=")">#{id}</foreach>
+       </if>
+    </select>
+</mapper>
