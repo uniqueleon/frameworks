@@ -233,9 +233,7 @@ public class BasicMessageProvider implements WSMessageService {
     @Override
     public WSMsgStatisticInfo getStatisticInfo(WSMessageRequest messageQO) {
 
-        if(messageQO.getUnreadOnly() == null){
-            messageQO.setUnreadOnly(true);
-        }
+        messageQO.setUnreadOnly(false);
         List<WSMessageDTO> msg = findMessage(messageQO);
         List<WSMessageDTO> unreadMsg = Lists.newArrayList();
         Long titleCount = messageMapper.countTitleMessage();
