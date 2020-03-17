@@ -9,15 +9,17 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.data.Stat;
 import org.aztec.framework.core.utils.CodecUtils;
 import org.aztec.framework.core.utils.HttpRequestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 
@@ -33,6 +35,13 @@ public class DisconfWebUtils {
     private static final String ZK_MONITOR_PATH_TEMPLATE = "/disconf/%s_%s_%s/file/%s";
     
     private static final Map<String,NodeCache> caches = Maps.newConcurrentMap();
+    
+    private static final Logger LOG = LoggerFactory.getLogger(DisconfWebUtils.class);
+
+    private static GenericObjectPool<CuratorFramework> clientPool;
+    
+    private static Object lockObj = new Object();
+    
 
     /**
      * 从disconf web后端读取配置文件
@@ -74,18 +83,31 @@ public class DisconfWebUtils {
      */
     public static void registWatcher(String fileName,DisconfConnectionConfig config) throws Exception{
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        CuratorFramework client = CuratorFrameworkFactory.newClient(config.getZkConnectUrl(), retryPolicy);
-        client.start();
+        if(clientPool == null){
+            synchronized (lockObj) {
+                if(clientPool == null){
+                    clientPool = new GenericObjectPool<>(new CuratorClientFactory(config));
+                    for(int i = 0;i < 2;i++){
+                        clientPool.addObject();
+                    }
+                }
+            }
+        }
+        CuratorFramework client = clientPool.borrowObject();
         //client.create().
         String path = getDisconfZkMonitorPath(config, fileName);
         Stat stat = client.checkExists().forPath(path);
-        if(stat == null){
-            client.create().forPath(path);
+        if(stat != null){
+            //client.create().forPath(path);
+            NodeCache nodeCache = new NodeCache(client, path);
+            nodeCache.start(true);
+            nodeCache.getListenable().addListener(new ConfigFileMonitor(config, fileName,path));
+            caches.put(path,nodeCache);
         }
-        NodeCache nodeCache = new NodeCache(client, path);
-        nodeCache.start(true);
-        nodeCache.getListenable().addListener(new ConfigFileMonitor(config, fileName,path));
-        caches.put(path,nodeCache);
+        else {
+            LOG.error("Can't regist watcher ,because the path[" + path + "] is not exists!");
+        }
+        clientPool.returnObject(client);
     }
     
     /**
