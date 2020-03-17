@@ -2,8 +2,8 @@ package org.aztec.framework.web.socket.listener;
 
 import java.util.List;
 
+import org.aztec.framework.api.rest.entity.WSMessageDTO;
 import org.aztec.framework.web.socket.WSMessageSender;
-import org.aztec.framework.web.socket.entity.WSMessageDTO;
 import org.aztec.framework.web.socket.event.WebSocketEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

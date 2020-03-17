@@ -3,8 +3,8 @@ package org.aztec.framework.web.socket;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.aztec.framework.web.socket.entity.WSMessageConsumerDTO;
-import org.aztec.framework.web.socket.entity.WSMessageDTO;
+import org.aztec.framework.api.rest.entity.WSMessageConsumerDTO;
+import org.aztec.framework.api.rest.entity.WSMessageDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Component;

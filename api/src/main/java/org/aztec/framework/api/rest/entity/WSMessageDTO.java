@@ -1,4 +1,4 @@
-package org.aztec.framework.web.socket.entity;
+package org.aztec.framework.api.rest.entity;
 
 import java.io.Serializable;
 import java.util.List;

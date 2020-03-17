@@ -2,9 +2,9 @@ package org.aztec.framework.web.socket;
 
 import java.util.List;
 
-import org.aztec.framework.web.socket.entity.WSMessageDTO;
-import org.aztec.framework.web.socket.entity.WSMessageRequest;
-import org.aztec.framework.web.socket.entity.WSMsgStatisticInfo;
+import org.aztec.framework.api.rest.entity.WSMessageDTO;
+import org.aztec.framework.api.rest.entity.WSMessageRequest;
+import org.aztec.framework.api.rest.entity.WSMsgStatisticInfo;
 
 /**
  * 消息提供者，用于生产消息.

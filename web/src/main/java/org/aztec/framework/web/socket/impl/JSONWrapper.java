@@ -1,7 +1,7 @@
 package org.aztec.framework.web.socket.impl;
 
+import org.aztec.framework.api.rest.entity.WSMessageDTO;
 import org.aztec.framework.web.socket.MessageWrapper;
-import org.aztec.framework.web.socket.entity.WSMessageDTO;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
