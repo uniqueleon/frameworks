@@ -11,6 +11,7 @@ public class ShardingThreadLocalContext {
     
     public static interface ContextKeys{
         String ColumnMatchType = "columnMatchType";
+        String showError = "showError";
     }
     
     private static final ThreadLocal<Map<String,Object>> context = new ThreadLocal<>();

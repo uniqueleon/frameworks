@@ -5,13 +5,11 @@ import java.util.Date;
 import org.aztec.framework.mybatis.conf.dao.ibatis.ShardValueTransformer;
 import org.springframework.stereotype.Component;
 
-import io.shardingsphere.core.api.algorithm.sharding.ShardingValue;
-
 @Component("lvt")
-public class LongValueTransformer implements ShardValueTransformer {
+public class LongValueTransformer extends BasicValueTransformer implements ShardValueTransformer {
 
     @Override
-    public Long transformToLong(ShardingValue shardValue, int shardSize, Object obj) {
+    public Long transformToLong(int shardSize, Object obj) {
         Long longVal = null;
         if(obj instanceof Long){
             longVal = (Long) obj;
@@ -30,5 +28,24 @@ public class LongValueTransformer implements ShardValueTransformer {
         }
         return longVal % shardSize;
     }
+
+    @Override
+    public Object getStartPoint() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object nextPoint(Object point) {
+        Long longVal = (Long) point;
+        return longVal + 1;
+    }
+
+    @Override
+    public Object previousPoint(Object point) {
+        Long longVal = (Long) point;
+        return longVal - 1;
+    }
+
 
 }
