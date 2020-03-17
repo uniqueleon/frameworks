@@ -6,6 +6,11 @@ import org.springframework.stereotype.Service;
 import com.baidu.disconf.client.common.annotations.DisconfFile;
 import com.baidu.disconf.client.common.annotations.DisconfFileItem;
 
+/**
+ * MongoDB连接配置
+ * @author liming
+ *
+ */
 @Service
 @Scope("singleton")
 @DisconfFile(filename="mongo_conf.properties")
@@ -22,5 +27,6 @@ public class MongoDBConf {
     public void setConnectionUrl(String connectionUrl) {
         this.connectionUrl = connectionUrl;
     }
+
     
 }
