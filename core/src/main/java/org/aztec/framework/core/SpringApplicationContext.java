@@ -25,6 +25,19 @@ public class SpringApplicationContext implements ApplicationContextAware,BeanFac
         context = arg0;
     }
     
+    /**
+     * 根据类获取bean
+     * @param beanCls
+     * @return
+     */
+    public static <T> T getBean(Class beanCls){
+        return (T) beanFactory.getBean(beanCls);
+    }
+    
+    public static <T> T getBean(String beanName,Object... args){
+        return (T) beanFactory.getBean(beanName, args);
+    }
+    
     public static <T> T getBean(String beanName){
         if(beanFactory == null){
             return null;

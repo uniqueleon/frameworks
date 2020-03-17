@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 @Configuration
-@ConditionalOnProperty(prefix="sjsc.framework",name="bus.disconf_enabled",havingValue="true")
+@ConditionalOnProperty(prefix="org.aztec",name="bus.disconf_enabled",havingValue="true")
 @ConditionalOnBean({DisconfAutoConfiguration.class,SpringBusConf.class})
 public class SpringCloudBusAutoConfiguration {
 
