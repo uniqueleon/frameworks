@@ -1,14 +1,22 @@
 package org.aztec.framework.web.socket;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import org.aztec.framework.api.Asserts;
+import org.aztec.framework.api.WebsocketException;
+import org.aztec.framework.api.rest.constant.WebsocketConstant;
+import org.aztec.framework.api.rest.constant.WebsocketConstant.ErrorCodes;
 import org.aztec.framework.api.rest.entity.WSMessageConsumerDTO;
 import org.aztec.framework.api.rest.entity.WSMessageDTO;
 import org.aztec.framework.api.rest.entity.WSMessageRequest;
 import org.aztec.framework.api.rest.entity.WSMsgStatisticInfo;
 import org.aztec.framework.core.utils.JsonUtils;
+import org.aztec.framework.disconf.items.WebSocketConfig;
+import org.aztec.framework.web.annotation.WebSocketBean;
 import org.aztec.framework.web.socket.entity.WSConsumerQO;
 import org.aztec.framework.web.socket.entity.WSMessage;
 import org.aztec.framework.web.socket.entity.WSMessageConsumer;
@@ -29,13 +37,16 @@ import com.google.common.collect.Maps;
  * @author liming
  *
  */
+@WebSocketBean
 @Component
 public class BasicMessageProvider implements WSMessageService {
 
-    @Autowired
+    @Autowired(required = false)
     BasicWSMessageMapper<WSMessage> messageMapper;
-    @Autowired
+    @Autowired(required = false)
     BasicWSMessageConsumerMapper<WSMessageConsumer> consumerMapper;
+    @Autowired
+    WebSocketConfig websocketConfig;
 
     /**
      * 获取消息提供者接口
@@ -88,13 +99,17 @@ public class BasicMessageProvider implements WSMessageService {
         List<WSMessageConsumer> consumers = consumerMapper.query(consumerQO);
         List<WSMessageDTO> messageList = Lists.newArrayList();
         List<Long> readMsgIds = Lists.newArrayList();
+        List<Long> unreadMsgIds = Lists.newArrayList();
         for (WSMessageConsumer consumer : consumers) {
             if (consumer.getStatus().equals(ReadStatus.READ.getCode())) {
                 readMsgIds.add(consumer.getMsgId());
             }
+            else{
+                unreadMsgIds.add(consumer.getMsgId());
+            }
         }
         // 读取已读消息
-        if (consumers.size() > 0 && !messageQO.getUnreadOnly()) {
+        if (!readMsgIds.isEmpty() && !messageQO.getUnreadOnly()) {
             Map<Long, WSMessageConsumerDTO> groups = groupByMessageId(consumers);
             WSMessageQO qo = new WSMessageQO();
             qo.setIds(readMsgIds);
@@ -104,21 +119,30 @@ public class BasicMessageProvider implements WSMessageService {
                 BeanUtils.copyProperties(message, dto);
                 dto.setId(message.getId());
                 WSMessageConsumerDTO c = groups.get(message.getId());
-                dto.setReadStatus(c.getStatus());
+                if (c != null) {
+                    dto.setReadStatus(c.getStatus());
+                } else {
+                    dto.setReadStatus(ReadStatus.UNREAD.getCode());
+                }
                 messageList.add(dto);
             });
         }
-        //获取私信
-        List<WSMessage> allSecretMsgs = messageMapper.getSecretMessages(readMsgIds.size() >0? readMsgIds : null);
-        allSecretMsgs.forEach(msg -> {
-            WSMessageDTO dto = new WSMessageDTO();
-            dto.setReadStatus(ReadStatus.UNREAD.getCode());
-            BeanUtils.copyProperties(msg, dto);
-            dto.setId(msg.getId());
-            messageList.add(dto);
-        });
+        if(unreadMsgIds.size() > 0){
+            WSMessageQO query = new WSMessageQO();
+            query.setIds(unreadMsgIds);
+            List<WSMessage> allSecretMsgs = messageMapper.query(query);
+            // 获取私信
+            //List<WSMessage> allSecretMsgs = messageMapper.getSecretMessages(readMsgIds.size() > 0 ? readMsgIds : null);
+            allSecretMsgs.forEach(msg -> {
+                WSMessageDTO dto = new WSMessageDTO();
+                dto.setReadStatus(ReadStatus.UNREAD.getCode());
+                BeanUtils.copyProperties(msg, dto);
+                dto.setId(msg.getId());
+                messageList.add(dto);
+            });
+        }
 
-        //获取未读主题 消息
+        // 获取未读主题 消息
         List<WSMessage> messages = messageMapper.getUnreadTopicMessage(readMsgIds.size() > 0 ? readMsgIds : null);
         messages.forEach(message -> {
             WSMessageDTO dto = new WSMessageDTO();
@@ -132,8 +156,9 @@ public class BasicMessageProvider implements WSMessageService {
 
     @Override
     @Transactional
-    public WSMessageDTO persist(WSMessageRequest request) {
+    public WSMessageDTO persist(WSMessageRequest request) throws WebsocketException {
         // TODO Auto-generated method stub
+        checkValid(request);
         WSMessage message = new WSMessage();
         BeanUtils.copyProperties(request, message);
         if (request.getSourceObj() != null) {
@@ -142,6 +167,9 @@ public class BasicMessageProvider implements WSMessageService {
         message.setStatus(1);
         message.setCreateTime(new Date());
         message.setUpdateTime(new Date());
+        if(message.getSourceInfo() == null){
+            message.setSourceInfo("{\"name\":\"system\"}");
+        }
         messageMapper.insert(message);
         List<WSMessageConsumerDTO> consumerList = Lists.newArrayList();
         if (request.getConsumerIds() != null && request.getConsumerIds().size() > 0) {
@@ -163,7 +191,78 @@ public class BasicMessageProvider implements WSMessageService {
         WSMessageDTO newMessage = new WSMessageDTO();
         BeanUtils.copyProperties(message, newMessage);
         newMessage.setId(message.getId());
+        newMessage.setConsumers(consumerList);
         return newMessage;
+    }
+
+    public void checkValid(WSMessageRequest request) throws WebsocketException {
+        // 默认广播
+        Asserts.fieldNotNull(request,
+                new String[] { "msgType", "sourceId", "title", "content" }, new String[] {
+                        ErrorCodes.MESSAGE_TYPE_IS_NULL, ErrorCodes.SOURCE_IS_NULL,
+                        ErrorCodes.TITLE_IS_NULL,ErrorCodes.CONTENT_IS_NULL},
+                new WebsocketException());
+        if (!isTopicValid(request)) {
+            fixTopic(request);
+        }
+        if(Boolean.parseBoolean(websocketConfig.getDuplicateCheck()) && isDuplicated(request)){
+            throw new WebsocketException(ErrorCodes.DUPLICATE_MSG);
+        }
+    }
+    
+    private boolean isDuplicated(WSMessageRequest request){
+
+        WSMessageQO qo = new WSMessageQO();
+        qo.setMsgType(request.getMsgType());
+        qo.setSourceId(qo.getSourceId());
+        qo.setTopic(qo.getTopic());
+        qo.setTitle(qo.getTitle());
+        qo.setContent(qo.getContent());
+        Date nowTime = new Date();
+        Calendar calendar = Calendar.getInstance(Locale.CHINESE);
+        calendar.setTime(nowTime);
+        calendar.add(Calendar.SECOND,Integer.parseInt(websocketConfig.getDuplicateCheckInterval()));
+        qo.setCheckPoint(calendar.getTime());
+        List<WSMessage> duplicateMsg = messageMapper.getSameMessage(qo);
+        if(duplicateMsg.size() > 0){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isTopicValid(WSMessageRequest request) {
+        String prefixes = websocketConfig.getDestinationPrefixes();
+        if (request.getTopic() != null) {
+            String[] prefixStr = prefixes.split(",");
+            for (String prefix : prefixStr) {
+                if (request.getTopic().startsWith(prefix)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void fixTopic(WSMessageRequest request) {
+
+        String prefixes = websocketConfig.getDestinationPrefixes();
+        DestinationType dType = DestinationType.getType(request.getMsgType());
+        switch (dType) {
+        case BROADCAST:
+            request.setTopic(prefixes.split(",")[0] + (request.getTopic() == null
+                    ? WebsocketConstant.DEFAULT_BROADCAST_TOPIC_SUFFIX : request.getTopic()));
+            break;
+        case MULTIPLE:
+            request.setTopic(prefixes.split(",")[0] + (request.getTopic() == null
+                    ? WebsocketConstant.DEFAULT_SECRET_TOPIC_SUFFIX : request.getTopic()));
+            break;
+        case SINGLE:
+            request.setTopic(prefixes.split(",")[0] + (request.getTopic() == null
+                    ? WebsocketConstant.DEFAULT_SECRET_TOPIC_SUFFIX : request.getTopic()));
+            break;
+        default:
+            break;
+        }
     }
 
     @Override
@@ -184,7 +283,7 @@ public class BasicMessageProvider implements WSMessageService {
     @Transactional
     public int notifyRead(List<Long> msgIds, String consumerId) {
         WSConsumerQO query = new WSConsumerQO();
-        query.setIds(msgIds);
+        query.setMsgIds(msgIds);
         List<WSMessageConsumer> consumers = consumerMapper.query(query);
         List<Long> missIds = Lists.newArrayList();
         missIds.addAll(msgIds);

@@ -1,8 +1,9 @@
 package org.aztec.framework.web.socket.entity;
 
+import java.util.Date;
 import java.util.List;
 
-import org.aztec.framework.api.rest.entity.Paginator;
+import com.sjsc.framework.api.restful.entity.Paginator;
 
 public class WSMessageQO extends Paginator<WSMessage>{
 
@@ -13,7 +14,12 @@ public class WSMessageQO extends Paginator<WSMessage>{
     private Integer pageSize;
     private Integer status;
     private Integer oldStatus;
+    private String topic;
+    private String title;
+    private String content;
+    private Long priority;
     private List<Long> ids;
+    private Date checkPoint;
     
     private Long id;
     
@@ -72,6 +78,35 @@ public class WSMessageQO extends Paginator<WSMessage>{
     public void setMsgType(Integer msgType) {
         this.msgType = msgType;
     }
-    
+    public Long getPriority() {
+        return priority;
+    }
+    public void setPriority(Long priority) {
+        this.priority = priority;
+    }
+    public String getTopic() {
+        return topic;
+    }
+    public void setTopic(String topic) {
+        this.topic = topic;
+    }
+    public String getTitle() {
+        return title;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    public String getContent() {
+        return content;
+    }
+    public void setContent(String content) {
+        this.content = content;
+    }
+    public Date getCheckPoint() {
+        return checkPoint;
+    }
+    public void setCheckPoint(Date checkPoint) {
+        this.checkPoint = checkPoint;
+    }
     
 }

@@ -21,6 +21,10 @@ public class WebSocketConfig {
     private String endPoint;
     private String destinationPrefixes;
     private String appDestinationPrefixes;
+    private String duplicateCheck;
+    private String duplicateCheckInterval;
+    private String duplicateEventCheckInterval;
+    
 
     @DisconfFileItem(name="eventSource",associateField="eventSource")
     public String getEventSource() {
@@ -57,6 +61,27 @@ public class WebSocketConfig {
     }
     public void setAppDestinationPrefixes(String appDestinationPrefixes) {
         this.appDestinationPrefixes = appDestinationPrefixes;
+    }
+    @DisconfFileItem(name="duplicateCheck",associateField="duplicateCheck")
+    public String getDuplicateCheck() {
+        return duplicateCheck;
+    }
+    public void setDuplicateCheck(String duplicateCheck) {
+        this.duplicateCheck = duplicateCheck;
+    }
+    @DisconfFileItem(name="duplicateCheckInterval",associateField="duplicateCheckInterval")
+    public String getDuplicateCheckInterval() {
+        return duplicateCheckInterval;
+    }
+    public void setDuplicateCheckInterval(String duplicateCheckInterval) {
+        this.duplicateCheckInterval = duplicateCheckInterval;
+    }
+    @DisconfFileItem(name="duplicateEventCheckInterval",associateField="duplicateEventCheckInterval")
+    public String getDuplicateEventCheckInterval() {
+        return duplicateEventCheckInterval;
+    }
+    public void setDuplicateEventCheckInterval(String duplicateEventCheckInterval) {
+        this.duplicateEventCheckInterval = duplicateEventCheckInterval;
     }
     
     
