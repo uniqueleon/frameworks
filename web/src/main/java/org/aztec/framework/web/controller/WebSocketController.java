@@ -1,11 +1,13 @@
 package org.aztec.framework.web.controller;
 
+import org.aztec.framework.api.WebsocketException;
 import org.aztec.framework.api.rest.entity.RestRequest;
 import org.aztec.framework.api.rest.entity.RestResult;
 import org.aztec.framework.api.rest.entity.WSMessageDTO;
 import org.aztec.framework.api.rest.entity.WSMessageRequest;
 import org.aztec.framework.api.rest.entity.WSMsgStatisticInfo;
 import org.aztec.framework.disconf.items.WebSocketConfig;
+import org.aztec.framework.web.annotation.WebSocketBean;
 import org.aztec.framework.web.socket.MessageStatus;
 import org.aztec.framework.web.socket.WSMessageSender;
 import org.aztec.framework.web.socket.WSMessageService;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 
+@WebSocketBean
 @RestController
 public class WebSocketController {
 
@@ -37,11 +40,11 @@ public class WebSocketController {
 
     @Autowired
     WebSocketConfig webSocketConfig;
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(WebSocketController.class);
 
     @MessageMapping("/login")
-    public RestResult<WSMsgStatisticInfo> login(RestRequest<WSMessageRequest> regist) {
+    public RestResult<WSMsgStatisticInfo> login(RestRequest<WSMessageRequest> regist) throws WebsocketException {
         WSMessageSender.addReceiver(regist.getParam().getConsumerId());
         RestResult<WSMsgStatisticInfo> result = new RestResult<WSMsgStatisticInfo>(true, "OK", "OK",
                 msgService.getStatisticInfo(regist.getParam()));
@@ -52,36 +55,47 @@ public class WebSocketController {
     }
 
     @MessageMapping("/read")
-    public void notifyRead(RestRequest<WSMessageRequest> request) {
+    public RestResult notifyRead(RestRequest<WSMessageRequest> request) throws WebsocketException {
         msgService.notifyRead(request.getParam().getHasReadMsgIds(), request.getParam().getConsumerId());
         RestResult result = new RestResult<WSMsgStatisticInfo>(true, "OK", "OK",
                 msgService.getStatisticInfo(request.getParam()));
         sender.broadcast(
                 webSocketConfig.getDestinationPrefixes() + "/system/login/" + request.getParam().getConsumerId(),
                 result);
+        return result;
     }
 
     @MessageMapping("/send")
-    public RestResult<Boolean> send(RestRequest<WSMessageRequest> request) {
-        WSMessageDTO newMessage = msgService.persist(request.getParam());
+    public RestResult<Boolean> send(RestRequest<WSMessageRequest> request)
+            throws NumberFormatException, WebsocketException {
+        WSMessageRequest reqParam = request.getParam();
+        WSMessageDTO newMessage = msgService.persist(reqParam);
         context.publishEvent(new WebSocketEvent(Lists.newArrayList(newMessage), webSocketConfig.getEventSource(),
                 webSocketConfig.getEventDestination()));
         int result = msgService.updateMsgStatus(Long.parseLong(newMessage.getId()), MessageStatus.SEND.getCode());
-        return result > 0 ? new RestResult<>(true, "OK", "OK",true) :  new RestResult<>(true, "OK", "OK",false); 
+        return result > 0 ? new RestResult<>(true, "OK", "OK", true) : new RestResult<>(true, "OK", "OK", false);
     }
-    
-    @RequestMapping(value="/websocket/send",method={RequestMethod.POST},consumes={MediaType.APPLICATION_JSON_UTF8_VALUE}
-    ,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
-    public RestResult<Boolean> sendByRestful(@RequestBody RestRequest<WSMessageRequest> request){
+
+    @RequestMapping(value = "/websocket/send", method = { RequestMethod.POST }, consumes = {
+            MediaType.APPLICATION_JSON_UTF8_VALUE }, produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
+    public RestResult<Boolean> sendByRestful(@RequestBody RestRequest<WSMessageRequest> request)
+            throws NumberFormatException, WebsocketException {
         LOG.info("send msg by restful client!param:" + JSON.toJSONString(request));
         return send(request);
     }
-    
-    @RequestMapping(value="/websocket/getStatistic",method={RequestMethod.POST},consumes={MediaType.APPLICATION_JSON_UTF8_VALUE}
-    ,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
-    public RestResult<WSMsgStatisticInfo> getStatisInfo(@RequestBody RestRequest<WSMessageRequest> regist){
+
+    @RequestMapping(value = "/websocket/getStatistic", method = { RequestMethod.POST }, consumes = {
+            MediaType.APPLICATION_JSON_UTF8_VALUE }, produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
+    public RestResult<WSMsgStatisticInfo> getStatisInfo(@RequestBody RestRequest<WSMessageRequest> regist)
+            throws WebsocketException {
         LOG.info("get statistic information by restful client!param:" + JSON.toJSONString(regist));
-        return  new RestResult<WSMsgStatisticInfo>(true, "OK", "OK",
-                msgService.getStatisticInfo(regist.getParam()));
+        return new RestResult<WSMsgStatisticInfo>(true, "OK", "OK", msgService.getStatisticInfo(regist.getParam()));
+    }
+
+    @RequestMapping(value = "/websocket/read", method = { RequestMethod.POST }, consumes = {
+            MediaType.APPLICATION_JSON_UTF8_VALUE }, produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
+    public RestResult<WSMsgStatisticInfo> notifyReadByRestful(@RequestBody RestRequest<WSMessageRequest> request)
+            throws WebsocketException {
+        return notifyRead(request);
     }
 }

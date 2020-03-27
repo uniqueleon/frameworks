@@ -3,7 +3,7 @@ package org.aztec.framework.web.socket.entity;
 import java.util.Date;
 import java.util.List;
 
-import com.sjsc.framework.api.restful.entity.Paginator;
+import org.aztec.framework.api.rest.entity.Paginator;
 
 public class WSMessageQO extends Paginator<WSMessage>{
 
