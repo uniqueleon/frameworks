@@ -216,6 +216,21 @@ public interface RedisOperator {
     public Long expireByPrefixKey(String prefixKey, int seconds);
     
     /**
+     * ��ȡ�ֲ�ʽ��
+     * 
+     * @param lockKey
+     *            ������ȡ��key
+     * @param acquireTimeoutInMS
+     *            ��ȡ����ʱʱ��
+     * @param lockTimeoutInMS
+     *            ���ĳ�ʱʱ��
+     * @return
+     */
+ 
+    public DistributedLockResp acquireLock(String lockKey, long acquireTimeoutInMS,
+            long lockTimeoutInMS);
+
+    /**
      * ����
      * 
      * @param lockKey
