@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjsc.framework.heartbeat.mapper.ServerInfoMapper">
+    <resultMap type="com.sjsc.framework.heartbeat.entity.ServerNode" id="hbMap">
+        <id column="id" property="id"/>
+        <result column="app_name" property="appName"/>
+        <result column="cpu" property="cpu"/>
+        <result column="create_time" property="createTime"/>
+        <result column="disk" property="disk"/>
+        <result column="disk_ratio" property="diskRatio"/>
+        <result column="status" property="status"/>
+        <result column="host" property="host"/>
+        <result column="port" property="port"/>
+        <result column="payload" property="payload"/>
+        <result column="latency" property="latency"/>
+        <result column="memory" property="memory"/>
+        <result column="memory_ratio" property="memoryRatio"/>
+        <result column="next" property="next"/>
+        <result column="start_time" property="startTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="findHostByServer" resultMap="hbMap" parameterType="java.util.Map">
+        select * from hb_server_node where host = #{host} and port = #{port};
+    </select>
+    
+    <select id="findAllEffectiveNodes" resultMap="hbMap" >
+        select * from hb_server_node where status = 1;
+    </select>
+    
+</mapper>

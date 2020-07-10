@@ -22,6 +22,8 @@
     	<module>elastic-job</module>
     	<module>redis</module>
     	<module>web</module>
+    	<module>async-task</module>
+    	<module>heartbeat</module>
     </modules>
 
     <properties>
